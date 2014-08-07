@@ -1,0 +1,5 @@
+name = "Volunteer Form Modifications"
+description = "Modifications for volunteer forms."
+dependencies[] = double_field
+version = 7.x-1.0-alpha
+core = 7.x

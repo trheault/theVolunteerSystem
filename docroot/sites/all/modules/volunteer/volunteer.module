@@ -1,0 +1,91 @@
+<?php
+/**
+* @file
+* Code for the modifying volunteer forms.
+*/
+
+/**
+* Hook form alter 
+* - For add species autocomplete and validate form.
+*
+*/
+function volunteer_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'hours_match_node_form') {
+    // Uncomment next line to view form as array if using devel module
+    // dpm($form);
+    
+    // Set form title.
+		drupal_set_title(t('Add your hours'));		
+    
+    // Add autocomplete on species
+    foreach($form['field_species_percent']['und'] as $delta => $field) {
+        if(is_array($field) && is_numeric($delta)) {
+            $form['field_species_percent']['und'][$delta]['first']['#autocomplete_path'] = 'dbpedia/autocomplete';
+        }
+    }
+    
+    // Validate the form.
+    $form['#validate'][] = '_volunteer_hours_match_validate';
+  }
+}
+
+
+/**
+* Hook menu
+* - add path to autocomplete lookup
+*
+*/
+function volunteer_menu() {
+  $items = array();
+  // Autocomplete path
+  $items['dbpedia/autocomplete'] = array(
+    'page callback' => 'dbpedia_autocomplete',
+    'access callback' => TRUE,
+    'access arguments' => array('access dbpedia autocomplete'),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+
+/**
+*  Autocomplete species Lookup
+* - get http request from http://wiki.dbpedia.org/lookup/
+* - parse xml response, return json
+*
+*/
+function dbpedia_autocomplete($string = '') {
+  $found = array();
+
+  $url = 'http://lookup.dbpedia.org/api/search.asmx/PrefixSearch?QueryString='.urlencode($string).'&QueryClass=species&MaxHits=10';
+  $result = file_get_contents($url);
+  $data = simplexml_load_string($result);
+
+  foreach($data->Result as $res_temp)
+  {
+      $found[check_plain($res_temp->Label)] = check_plain($res_temp->Label);
+  }
+
+  drupal_json_output($found);
+}
+
+
+/**
+ * Validate Hours Match form
+ *
+ */
+function _volunteer_hours_match_validate ($form, $form_state) {
+	$lang = $form_state['values']['language'];
+
+  // Make sure all the species percentages equal 100%.
+  $total = 0;
+  foreach($form_state['values']['field_species_percent']['und'] as $delta => $field) {
+     if(is_array($field) && is_numeric($delta)) {
+      $total += $form['field_species_percent']['und'][$delta]['second']['#value'];
+      }
+  }
+  
+  if ($total != 100) {
+    form_set_error('field_species_percent', t('Total must equal 100.'));
+  }
+}
