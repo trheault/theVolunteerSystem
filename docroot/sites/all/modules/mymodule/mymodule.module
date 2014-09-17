@@ -1,0 +1,85 @@
+<?php
+/**
+* @file
+* Code for the modifying volunteer forms.
+
+   */
+
+
+/**
+ * hook_views_pre_view
+ * @param type $view
+ * @param type $display_id
+ * @param type $args
+ */
+function mymodule_views_pre_view(&$view, &$display_id, &$args) {
+    if ($view->name == 'VIEW_NAME') {
+        $filters = $view->display_handler->get_option('filters');
+        $view->display_handler->override_option('filters', $filters);
+    }
+}
+/**
+ * hook__views_pre_build
+ * @param type $view
+ * @return type
+ */
+function mymodule_views_pre_build($view) {
+    if ($view->name=='VIEW_NAME') {
+        $view->display['page']->handler->handlers['filter']['filter_field']->value['value'] = 8;
+        //$view->display['page']->handler->handlers['filter']['timestamp']->options['value']['min'] = '2012-02-18 00:00:00';
+        //$view->display['page']->handler->handlers['filter']['timestamp']->options['value']['max'] = '2012-02-20 00:00:00';
+        return $view;
+    }
+}
+
+function mymodule_form_views_exposed_form_alter(&$form, &$form_state) {
+    if($form['#id'] == 'views-exposed-form-project-list-page') // change "views-exposed-form-Courses-page-3" by your form id
+    {
+        $form['field_volunteer_coordinator_nid']['#default_value'] = 2;
+
+    }
+}
+
+/**
+* Hook form alter 
+*
+*/
+function mymodule_form_alter(&$form, &$form_state, $form_id) {
+    //print_r($form_id);
+
+    if ($form_id == 'views_exposed_form') {
+        //$form['field_volunteer_coordinator_nid']['#default_value'] = "2";
+
+        //execute manage_custom_filters function submit in first step on $form['#submit'] array
+        array_unshift($form['#submit'], 'manage_custom_filters');
+
+       // print '<pre>';
+       // print_r($form);
+       // print '</pre>';
+        //$form['#info']['filter-field_volunteer_coordinator_nid']['#default_value'] = 'Sara Focht';
+        //  $form['options']['promote']['#default_value'] = 1;
+    }
+
+    /*
+     if ($form_id == 'project_node_form') {
+        print '<pre>';
+        print_r($form);
+        print '</pre>';
+       //  $form['options']['promote']['#default_value'] = 1;
+     }
+     if ($form_id == 'search_block_form') {
+         print '<pre>';
+         print_r($form);
+         print '</pre>';
+         //  $form['options']['promote']['#default_value'] = 1;
+     }
+     */
+}
+
+function manage_custom_filters($form, &$form_state) {
+    //modify form_state values of concerned field
+    $form_state['values']['field_community_value'] = 'custom_value';
+    //modify form_state of concerned field to pass to the view
+    $form_state['view']->display_handler->handlers['filter']['field_community_value']->validated_exposed_input = 'custom_value';
+}
+

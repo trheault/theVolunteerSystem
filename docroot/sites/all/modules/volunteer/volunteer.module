@@ -2,7 +2,8 @@
 /**
 * @file
 * Code for the modifying volunteer forms.
-*/
+
+ */
 
 /**
  * Implements hook_init().
@@ -18,23 +19,18 @@ function trails_init() {
 *
 */
 function volunteer_form_alter(&$form, &$form_state, $form_id) {
-  if ($form_id == 'hours_match_node_form' or $form_id == 'inkind_match_node_form') {
-    // Uncomment next line to view form as array if using devel module
-    // dpm($form);
-    
-    /* Set form title.
-		drupal_set_title(t('Add your hours'));		
-    */
-    /* Add autocomplete on species
-    foreach($form['field_species_percent']['und'] as $delta => $field) {
-        if(is_array($field) && is_numeric($delta)) {
-            $form['field_species_percent']['und'][$delta]['first']['#autocomplete_path'] = 'dbpedia/autocomplete';
-        }
+    // if Create Hours Match form
+    if ($form_id == 'hours_match_node_form') {
+        // Validate PCA & Percentage, and Project Date on the form.
+        $form['#validate'][] = '_volunteer_pca_percentage_validate';
+        $form['#validate'][] = '_volunteer_project_date_validate';
     }
-    */
-    // Validate the form.
-    $form['#validate'][] = '_volunteer_pca_percentage_validate';
-  }
+    // if Create InKind Match form
+    if ($form_id == 'inkind_match_node_form') {
+        // Validate PCA & Percentage on the form.
+        $form['#validate'][] = '_volunteer_pca_percentage_validate';
+        //$form['#validate'][] = '_volunteer_project_date_validate';
+    }
 }
 
 
@@ -83,17 +79,68 @@ function dbpedia_autocomplete($string = '') {
  *
  */
 function _volunteer_pca_percentage_validate ($form, $form_state) {
-	$lang = $form_state['values']['language'];
+    $lang = $form_state['values']['language'];
 
-  // Make sure all the species percentages equal 100%.
-  $total = 0;
-  foreach($form_state['values']['field_pca_and_percentage']['und'] as $delta => $field) {
-     if(is_array($field) && is_numeric($delta)) {
-      $total += $form['field_pca_and_percentage']['und'][$delta]['second']['#value'];
-      }
-  }
-  
-  if ($total != 100) {
-    form_set_error('field_pca_and_percentage', t('Total PCA Percentage must equal 100%. Current Total = '.$total.'%'));
-  }
+    // Make sure all the species percentages equal 100%.
+    $total = 0;
+    foreach($form_state['values']['field_pca_and_percentage'][$lang] as $delta => $field) {
+        if(is_array($field) && is_numeric($delta)) {
+            $total += $form['field_pca_and_percentage'][$lang][$delta]['second']['#value'];
+        }
+    }
+
+    if ($total != 100) {
+        form_set_error('field_pca_and_percentage', t('Total PCA Percentage must equal 100%. Current Total = '.$total.'%'));
+    }
 }
+
+/**
+ * Validate Project date within Date Range
+ *
+ */
+
+
+function _volunteer_project_date_validate ($form, $form_state) {
+    // Grab language or use constant LANGUAGE_NONE if not multi-lingual.
+    $lang = $form_state['values']['language'];
+
+
+    // Make sure the project date is between project range
+    $date_from_user =  $form['field_date_of_project'][$lang]['0']['#value']['value']['date'];
+
+    // Load project node
+    $project_node = node_load($form_state['values']['field_project_select'][$lang][0]['nid']);
+    // retrieve project start and end dates for project
+    $project_start = $project_node->field_project_start_date[$lang][0]['value'];
+    $project_end = $project_node->field_project_end_date[$lang][0]['value'];
+
+    // convert to date only without time element since user date has no time.
+    $project_start = date("m/d/Y",strtotime($project_start));
+    $project_end = date("m/d/Y",strtotime($project_end));
+
+
+    $inRange = check_date_in_range($project_start, $project_end, $date_from_user);
+
+
+    // if not in date range of project return error message
+    if (!$inRange ) {
+        form_set_error('field_date_of_project', t('Date of Project not in date range of Project ('.$project_start.' - '.$project_end.')'));
+    }
+
+}
+/*
+ * Check that the User date input falls within the Project start and end dates
+ */
+
+function check_date_in_range($start_date, $end_date, $date_from_user)
+{
+    // Convert to timestamp
+    $start_ts = strtotime($start_date);
+    $end_ts = strtotime($end_date);
+    $user_ts = strtotime($date_from_user);
+
+    // Check that user date is between start & end
+    return (($user_ts >= $start_ts) && ($user_ts <= $end_ts));
+}
+
+

@@ -1,0 +1,5 @@
+name = "My Custom Module"
+description = "Taken from YouTube to show Page Variables"
+package = Custom
+version = 7.x-1.0-alpha
+core = 7.x
