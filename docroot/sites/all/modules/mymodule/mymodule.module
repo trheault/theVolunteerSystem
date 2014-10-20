@@ -13,9 +13,18 @@
  * @param type $args
  */
 function mymodule_views_pre_view(&$view, &$display_id, &$args) {
-    if ($view->name == 'VIEW_NAME') {
-        $filters = $view->display_handler->get_option('filters');
-        $view->display_handler->override_option('filters', $filters);
+    if ($view->name == 'project_list') {
+
+        // get the current user id
+        global $user;
+        //$uid = $user->uid;
+
+        // get coordinator node
+        $nid = db_query('SELECT field_data_field_user_link.entity_id FROM field_data_field_user_link WHERE field_data_field_user_link.field_user_link_uid = :uid',
+            array(':uid' => $user->uid))->fetchField();
+
+        $path = 'project-list?field_volunteer_coordinator_nid='.$nid;
+        $form_state['redirect'] = $path;
     }
 }
 /**
@@ -24,8 +33,8 @@ function mymodule_views_pre_view(&$view, &$display_id, &$args) {
  * @return type
  */
 function mymodule_views_pre_build($view) {
-    if ($view->name=='VIEW_NAME') {
-        $view->display['page']->handler->handlers['filter']['filter_field']->value['value'] = 8;
+    if ($view->name=='project_list') {
+        //$view->display['page']->handler->handlers['filter']['filter_field']->value['value'] = 8;
         //$view->display['page']->handler->handlers['filter']['timestamp']->options['value']['min'] = '2012-02-18 00:00:00';
         //$view->display['page']->handler->handlers['filter']['timestamp']->options['value']['max'] = '2012-02-20 00:00:00';
         return $view;
@@ -35,7 +44,33 @@ function mymodule_views_pre_build($view) {
 function mymodule_form_views_exposed_form_alter(&$form, &$form_state) {
     if($form['#id'] == 'views-exposed-form-project-list-page') // change "views-exposed-form-Courses-page-3" by your form id
     {
-        $form['field_volunteer_coordinator_nid']['#default_value'] = 2;
+        //$form['field_volunteer_coordinator_nid']['#default_value'] = 2;
+
+        // get the current user id
+        global $user;
+        //$uid = $user->uid;
+
+        // get coordinator node
+        $nid = db_query('SELECT field_data_field_user_link.entity_id FROM field_data_field_user_link WHERE field_data_field_user_link.field_user_link_uid = :uid',
+                        array(':uid' => $user->uid))->fetchField();
+
+        $path = 'project-list?field_volunteer_coordinator_nid='.$nid;
+
+//left on Thursday this is not working
+//        $form_state['redirect'] = $path;
+
+        /*
+         * TR -  Get the following error with this code:
+         * You don't have permission to access /project-list?field_volunteer_coordinator_nid=2 on this server.
+         */
+        //$query = drupal_get_destination();
+        //drupal_goto($path,$query);
+
+        // Load project node from nid of form project
+        //$volunteer_coordinator_node = node_load($form_state['values']['field_project_select'][$lang][0]['nid']);
+        // retrieve project start and end dates for project
+        //$project_start = $volunteer_coordinator_node->field_project_start_date[$lang][0]['value'];
+        //$project_end = $volunteer_coordinator_node->field_project_end_date[$lang][0]['value'];
 
     }
 }
@@ -48,14 +83,21 @@ function mymodule_form_alter(&$form, &$form_state, $form_id) {
     //print_r($form_id);
 
     if ($form_id == 'views_exposed_form') {
-        //$form['field_volunteer_coordinator_nid']['#default_value'] = "2";
+        $form['field_volunteer_coordinator_nid']['#default_value'] = "2";
+
+        /*
+        $url = "/project-list";
+        $query = "field_volunteer_coordinator_nid=2";
+        drupal_goto($url, $query);
+        */
+
 
         //execute manage_custom_filters function submit in first step on $form['#submit'] array
-        array_unshift($form['#submit'], 'manage_custom_filters');
+        //array_unshift($form['#submit'], 'manage_custom_filters');
 
-       // print '<pre>';
-       // print_r($form);
-       // print '</pre>';
+        //print '<pre>';
+        //print_r($form);
+        //print '</pre>';
         //$form['#info']['filter-field_volunteer_coordinator_nid']['#default_value'] = 'Sara Focht';
         //  $form['options']['promote']['#default_value'] = 1;
     }

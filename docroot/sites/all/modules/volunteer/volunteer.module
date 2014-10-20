@@ -31,48 +31,15 @@ function volunteer_form_alter(&$form, &$form_state, $form_id) {
         $form['#validate'][] = '_volunteer_pca_percentage_validate';
         //$form['#validate'][] = '_volunteer_project_date_validate';
     }
+
+    // if Create InKind Match form
+    if ($form_id == 'participant_node_form') {
+        // Validate that New Participant does not duplicate exiting record in database
+        $form['#validate'][] = '_participant_duplicate_validate';
+    }
+
+
 }
-
-
-/**
-* Hook menu
-* - add path to autocomplete lookup
-*
-
-function volunteer_menu() {
-  $items = array();
-  // Autocomplete path
-  $items['dbpedia/autocomplete'] = array(
-    'page callback' => 'dbpedia_autocomplete',
-    'access callback' => TRUE,
-    'access arguments' => array('access dbpedia autocomplete'),
-    'type' => MENU_CALLBACK,
-  );
-  return $items;
-}
-
-
-/**
-*  Autocomplete species Lookup
-* - get http request from http://wiki.dbpedia.org/lookup/
-* - parse xml response, return json
-*
-
-function dbpedia_autocomplete($string = '') {
-  $found = array();
-
-  $url = 'http://lookup.dbpedia.org/api/search.asmx/PrefixSearch?QueryString='.urlencode($string).'&QueryClass=species&MaxHits=10';
-  $result = file_get_contents($url);
-  $data = simplexml_load_string($result);
-
-  foreach($data->Result as $res_temp)
-  {
-      $found[check_plain($res_temp->Label)] = check_plain($res_temp->Label);
-  }
-
-  drupal_json_output($found);
-}
-*/
 
 /**
  * Validate PCA Percentages to equal 100%
@@ -98,8 +65,6 @@ function _volunteer_pca_percentage_validate ($form, $form_state) {
  * Validate Project date within Date Range
  *
  */
-
-
 function _volunteer_project_date_validate ($form, $form_state) {
     // Grab language or use constant LANGUAGE_NONE if not multi-lingual.
     $lang = $form_state['values']['language'];
@@ -108,13 +73,13 @@ function _volunteer_project_date_validate ($form, $form_state) {
     // Make sure the project date is between project range
     $date_from_user =  $form['field_date_of_project'][$lang]['0']['#value']['value']['date'];
 
-    // Load project node
+    // Load project node from nid of form project
     $project_node = node_load($form_state['values']['field_project_select'][$lang][0]['nid']);
     // retrieve project start and end dates for project
     $project_start = $project_node->field_project_start_date[$lang][0]['value'];
     $project_end = $project_node->field_project_end_date[$lang][0]['value'];
 
-    // convert to date only without time element since user date has no time.
+    // convert to date only without time element since user entered date has no time.
     $project_start = date("m/d/Y",strtotime($project_start));
     $project_end = date("m/d/Y",strtotime($project_end));
 
@@ -143,4 +108,93 @@ function check_date_in_range($start_date, $end_date, $date_from_user)
     return (($user_ts >= $start_ts) && ($user_ts <= $end_ts));
 }
 
+/**
+ * Validate Project date within Date Range
+ *
+ */
+function _participant_duplicate_validate ($form, $form_state) {
+    // Grab language or use constant LANGUAGE_NONE if not multi-lingual.
+    $lang = $form_state['values']['language'];
+
+
+    /* run query on database to see if participant exists
+    $duplicateCount = 0;
+    $sSql = "SELECT field_first_name_value, field_last_name_value,  N.type
+              FROM {field_data_field_first_name} AS FN
+              INNER JOIN {field_data_field_last_name} AS LN ON FN.entity_id = FN.entity_id
+              INNER JOIN {node} N on FN.entity_id = N.nid
+
+              WHERE field_first_name_value = 'Tony'
+              AND field_last_name_value =  'Rheault'
+              AND N.type = 'participant'";
+    $dbResult =  db_query($sSql);
+    */
+    $duplicateCount = 0;
+    $matchFirstName = '';
+    $matchLastName = '';
+        // URL:  https://api.drupal.org/api/drupal/includes%21database%21database.inc/function/db_query/7
+
+    $nodeType = $form_state['values']['type'];
+    $firstName = $form_state['values']['field_first_name'][$lang][0][value];
+    $lastName = $form_state['values']['field_last_name'][$lang][0][value];
+    $result = db_query('SELECT FN.field_first_name_value, LN.field_last_name_value, N.nid
+      FROM {node} N
+        INNER JOIN {field_data_field_first_name} AS FN ON FN.entity_id = N.nid
+        INNER JOIN {field_data_field_last_name} AS LN ON LN.entity_id = N.nid
+      WHERE N.TYPE = :typeDesc
+        AND FN.field_first_name_value = :firstName
+        AND LN.field_last_name_value = :lastName
+        ', array(':typeDesc' => $nodeType,
+                 ':firstName' => $firstName,
+                 ':lastName' => $lastName)
+        );
+    // Result is returned as a iterable object that returns a stdClass object on each iteration
+    foreach ($result as $record) {
+        // Perform operations on $record->title, etc. here.
+        // in this example the available data would be mapped to object properties:
+        // $record->nid, $record->title, $record->created
+        $duplicateCount++;
+        $matchFirstName = $record->field_first_name_value;
+        $matchLastName = $record->field_last_name_value;
+
+    }
+
+
+
+    // if not in date range of project return error message
+    if ($duplicateCount > 0 ) {
+        form_set_error('field_date_of_project', t('Duplicate Participant name found ('.$firstName.' '.$lastName.')'));
+    }
+
+}
+/**
+ * Validate Project date within Date Range
+ *
+ */
+function _volunteer_get_volunteer_coordinator_uid ($form, $form_state) {
+    // Grab language or use constant LANGUAGE_NONE if not multi-lingual.
+    $lang = $form_state['values']['language'];
+
+
+    // Load project node from nid of form project
+    $project_node = node_load($form_state['values']['field_project_select'][$lang][0]['nid']);
+    // retrieve project start and end dates for project
+    $project_start = $project_node->field_project_start_date[$lang][0]['value'];
+    $project_end = $project_node->field_project_end_date[$lang][0]['value'];
+
+    // convert to date only without time element since user entered date has no time.
+    $project_start = date("m/d/Y",strtotime($project_start));
+    $project_end = date("m/d/Y",strtotime($project_end));
+
+
+    /*$inRange = check_date_in_range($project_start, $project_end, $date_from_user);
+
+
+    // if not in date range of project return error message
+    if (!$inRange ) {
+        form_set_error('field_date_of_project', t('Date of Project not in date range of Project ('.$project_start.' - '.$project_end.')'));
+    }
+    */
+
+}
 
