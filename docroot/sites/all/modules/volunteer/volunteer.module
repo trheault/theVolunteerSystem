@@ -19,7 +19,7 @@ function trails_init() {
 *
 */
 function volunteer_form_alter(&$form, &$form_state, $form_id) {
-    // if Create Hours Match form
+    /* if Create Hours Match form
     if ($form_id == 'hours_match_node_form') {
         // Validate PCA & Percentage, and Project Date on the form.
         $form['#validate'][] = '_volunteer_pca_percentage_validate';
@@ -37,7 +37,7 @@ function volunteer_form_alter(&$form, &$form_state, $form_id) {
         $form['#validate'][] = '_participant_duplicate_validate';
     }
 
-
+*/
 }
 
 /**
@@ -47,16 +47,19 @@ function volunteer_form_alter(&$form, &$form_state, $form_id) {
 function _volunteer_pca_percentage_validate ($form, $form_state) {
     $lang = $form_state['values']['language'];
 
-    // Make sure all the species percentages equal 100%.
-    $total = 0;
-    foreach($form_state['values']['field_pca_and_percentage'][$lang] as $delta => $field) {
-        if(is_array($field) && is_numeric($delta)) {
-            $total += $form['field_pca_and_percentage'][$lang][$delta]['second']['#value'];
+    // if "Use Default checked, then no need to validate PCA Percentages
+    if($form_state['values']['field_use_a_default_pca'][$lang][0]["value"] == 0){
+        // Make sure all the species percentages equal 100%.
+        $total = 0;
+        foreach($form_state['values']['field_pca_and_percentage'][$lang] as $delta => $field) {
+            if(is_array($field) && is_numeric($delta)) {
+                $total += $form['field_pca_and_percentage'][$lang][$delta]['second']['#value'];
+            }
         }
-    }
 
-    if ($total != 100) {
-        form_set_error('field_pca_and_percentage', t('Total PCA Percentage must equal 100%. Current Total = '.$total.'%'));
+        if ($total != 100) {
+            form_set_error('field_pca_and_percentage', t('Total PCA Percentage must equal 100%. Current Total = '.$total.'%'));
+        }
     }
 }
 
@@ -70,47 +73,49 @@ function _volunteer_match_date_validate ($form, $form_state) {
     $project_start = "";
     $project_end = "";
 
-        // Make sure the project date is between project range
-    $date_from_user =  $form['field_date_of_project'][$lang]['0']['#value']['value']['date'];
-    // if date is left empty, let required field display error message
-    if($date_from_user != ""){
-        // Load project node from nid of form project
-        $project_node = node_load($form_state['values']['field_project_select'][$lang][0]['nid']);
-        // retrieve project start and end dates for project
-        if(!empty($project_node->field_project_start_date)){
-            $project_start = $project_node->field_project_start_date[$lang][0]['value'];
-        }
-        if(!empty($project_node->field_project_end_date)){
-            $project_end = $project_node->field_project_end_date[$lang][0]['value'];
-        }
-
-        // check that Start Date for project exists
-        if($project_start == ""){
-            form_set_error('field_date_of_project', t('Start Date invalid for Project.  Please add a Start Date on Project Edit Screen'));
-        }else if($project_end == ""){ // No Project End Date, so only check that the date_from_user is greater than Project Start Date
-            // convert to date only without time element since user entered date has no time.
-            $project_start = date("m/d/Y",strtotime($project_start));
-        }else{
-            // convert to date only without time element since user entered date has no time.
-            $project_start = date("m/d/Y",strtotime($project_start));
-            $project_end = date("m/d/Y",strtotime($project_end));
-
-        }
-
-        if($project_start != ""){
-            $inRange = check_date_in_range($project_start, $project_end, $date_from_user);
-        }
-
-
-        // if not in date range of project return error message
-        if (!$inRange ) {
-            if($project_end == ""){
-                $project_end = "No End Date";
+    //check that a project has been selected
+    if(!$form_state['values']['field_project_select'][$lang][0]["nid"]==null){
+            // Make sure the project date is between project range
+        $date_from_user =  $form['field_date_of_project'][$lang]['0']['#value']['value']['date'];
+        // if date is left empty, let required field display error message
+        if($date_from_user != ""){
+            // Load project node from nid of form project
+            $project_node = node_load($form_state['values']['field_project_select'][$lang][0]['nid']);
+            // retrieve project start and end dates for project
+            if(!empty($project_node->field_project_start_date)){
+                $project_start = $project_node->field_project_start_date[$lang][0]['value'];
             }
-            form_set_error('field_date_of_project', t('Date of Project not in date range of Project ('.$project_start.' - '.$project_end.')'));
+            if(!empty($project_node->field_project_end_date)){
+                $project_end = $project_node->field_project_end_date[$lang][0]['value'];
+            }
+
+            // check that Start Date for project exists
+            if($project_start == ""){
+                form_set_error('field_date_of_project', t('Start Date invalid for Project.  Please add a Start Date on Project Edit Screen'));
+            }else if($project_end == ""){ // No Project End Date, so only check that the date_from_user is greater than Project Start Date
+                // convert to date only without time element since user entered date has no time.
+                $project_start = date("m/d/Y",strtotime($project_start));
+            }else{
+                // convert to date only without time element since user entered date has no time.
+                $project_start = date("m/d/Y",strtotime($project_start));
+                $project_end = date("m/d/Y",strtotime($project_end));
+
+            }
+            $inRange = false;
+            if($project_start != ""){
+                $inRange = check_date_in_range($project_start, $project_end, $date_from_user);
+            }
+
+
+            // if not in date range of project return error message
+            if (!$inRange ) {
+                if($project_end == ""){
+                    $project_end = "No End Date";
+                }
+                form_set_error('field_date_of_project', t('Date of Project not in date range of Project ('.$project_start.' - '.$project_end.')'));
+            }
         }
     }
-
 }
 /*
  * Check that the User date input falls within the Project start and end dates
