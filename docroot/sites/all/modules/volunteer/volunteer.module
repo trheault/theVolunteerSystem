@@ -19,7 +19,7 @@ function trails_init() {
 *
 */
 function volunteer_form_alter(&$form, &$form_state, $form_id) {
-    /* if Create Hours Match form
+    // if Create Hours Match form
     if ($form_id == 'hours_match_node_form') {
         // Validate PCA & Percentage, and Project Date on the form.
         $form['#validate'][] = '_volunteer_pca_percentage_validate';
@@ -31,13 +31,14 @@ function volunteer_form_alter(&$form, &$form_state, $form_id) {
         $form['#validate'][] = '_volunteer_pca_percentage_validate';
     }
 
-    // if Create InKind Match form
+    // if Add/Edit Participant form
     if ($form_id == 'participant_node_form') {
         // Validate that New Participant does not duplicate exiting record in database
         $form['#validate'][] = '_participant_duplicate_validate';
+        $form['#validate'][] = '_participant_field_validate';
     }
 
-*/
+//
 }
 
 /**
@@ -144,7 +145,7 @@ function check_date_in_range($start_date, $end_date, $date_from_user)
 }
 
 /**
- * Validate Project date within Date Range
+ * Validate that a duplicate Participant has not been entered
  *
  */
 function _participant_duplicate_validate ($form, $form_state) {
