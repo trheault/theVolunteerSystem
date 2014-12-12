@@ -26,7 +26,7 @@
       <file leaf-file-name="volunteer.module" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/docroot/sites/all/modules/volunteer/volunteer.module">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="149" column="3" selection-start="5409" selection-end="5409" vertical-scroll-proportion="1.2346939" vertical-offset="1860" max-vertical-offset="4505">
+            <state line="117" column="9" selection-start="4584" selection-end="4584" vertical-scroll-proportion="0.1244898" vertical-offset="1860" max-vertical-offset="4505">
               <folding>
                 <marker date="1417628460927" expanded="true" signature="6154:6457" placeholder="SELECT OrgN...." />
                 <marker date="1417628460927" expanded="true" signature="7218:7718" placeholder="SELECT FN.fi..." />
@@ -389,7 +389,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="1726" y="13" width="1173" height="999" extended-state="0" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -397,7 +397,7 @@
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18841833" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3052023" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3052023" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
@@ -799,7 +799,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/docroot/sites/all/modules/volunteer/volunteer.module">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="149" column="3" selection-start="5409" selection-end="5409" vertical-scroll-proportion="1.2346939" vertical-offset="1860" max-vertical-offset="4505">
+        <state line="117" column="9" selection-start="4584" selection-end="4584" vertical-scroll-proportion="0.1244898" vertical-offset="1860" max-vertical-offset="4505">
           <folding>
             <marker date="1417628460927" expanded="true" signature="6154:6457" placeholder="SELECT OrgN...." />
             <marker date="1417628460927" expanded="true" signature="7218:7718" placeholder="SELECT FN.fi..." />
