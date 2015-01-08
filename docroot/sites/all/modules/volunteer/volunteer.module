@@ -38,6 +38,7 @@ function volunteer_form_alter(&$form, &$form_state, $form_id) {
         $form['#validate'][] = '_participant_field_validate';
     }
 
+
 //
 }
 
@@ -259,5 +260,33 @@ function _volunteer_get_volunteer_coordinator_uid ($form, $form_state) {
     }
     */
 
+}
+
+/**
+ * Implements hook_node_access().
+ * If user is not in role of grant_administrator and Final Approved (release_to_grants) is marked 'Yes' user may not edit or delete Match Record.
+ * NOTE: The function not triggered for Site Administrator (user nid=1)
+ * (The administrative account (user ID #1) always passes any access check, so this hook is not called in that case.)
+ * Sign in as another user to test this function.
+ */
+function volunteer_node_access($node, $op, $account) {
+    // If $node is a string, the node has not yet been created. We don't care
+    // about that case.
+    if (is_string($node)) {
+        return NODE_ACCESS_IGNORE;
+    }
+    // Check if $node->type is  Hours Match or In-Kind Match. If not, then IGNORE
+    if($node->type != 'hours_match' && $node->type != 'inkind_match'){
+        return NODE_ACCESS_IGNORE;
+    }
+
+    // check if Update or Delete and if Final Approval and if not Grant Administrator -> then Deny Access to Update or Delete(Edit Tab is hidden)
+    if (($op == 'update' || $op == 'delete') && (!empty($account->name) && !in_array('grant_administrator', $account->roles))&& !empty($node->field_release_to_grants[$node->language]) && ($node->field_release_to_grants[$node->language][0]['value'] == 1)) {
+        // set message for No Editing Allowed
+        drupal_set_message(t('No Editing Allowed after Final Approval.  Grant Administrator must unlock record to Enable Editing.'));
+        return NODE_ACCESS_DENY;
+    }else{
+        return NODE_ACCESS_ALLOW;
+    }
 }
 
